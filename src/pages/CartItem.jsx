@@ -1,13 +1,112 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { decreaseQuantity, increaseQuantity, removeFromCart } from '../CartSlice.jsx';
-export default function CartItem() {
+
+import React from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { removeItem, updateQuantity } from "../CartSlice";
+
+function CartItem() {
   const dispatch = useDispatch();
-  const items = useSelector(state => state.cart.items);
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  return <main className="page-shell cart-page"><div className="page-heading"><p className="eyebrow">Your basket</p><h1>Shopping Cart</h1></div>
-    {items.length === 0 ? <div className="empty-cart"><div className="empty-icon">♡</div><h2>Your cart is waiting to bloom.</h2><p>Add a few plants and they’ll show up here.</p><Link className="primary-btn" to="/plants">Continue Shopping →</Link></div> :
-    <div className="cart-layout"><section className="cart-items">{items.map(item => <article className="cart-row" key={item.id}><img src={item.image} alt={item.name}/><div className="cart-product"><h3>{item.name}</h3><p>${item.price.toFixed(2)} each</p><div className="quantity"><button aria-label="Decrease quantity" onClick={() => dispatch(decreaseQuantity(item.id))}>−</button><span>{item.quantity}</span><button aria-label="Increase quantity" onClick={() => dispatch(increaseQuantity(item.id))}>+</button></div></div><div className="line-total"><strong>${(item.price * item.quantity).toFixed(2)}</strong><button className="remove" onClick={() => dispatch(removeFromCart(item.id))}>Remove</button></div></article>)}</section>
-      <aside className="summary"><h2>Order summary</h2><div><span>Items ({items.reduce((s,i)=>s+i.quantity,0)})</span><span>${total.toFixed(2)}</span></div><div className="summary-total"><strong>Total</strong><strong>${total.toFixed(2)}</strong></div><button className="checkout" onClick={() => alert('Coming Soon!')}>Checkout</button><Link className="continue-link" to="/plants">← Continue Shopping</Link></aside></div>}
-  </main>;
+  const items = useSelector((state) => state.cart.items);
+
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  const updateItemQuantity = (item, quantity) => {
+    if (quantity >= 1) {
+      dispatch(
+        updateQuantity({
+          id: item.id,
+          quantity,
+        })
+      );
+    }
+  };
+
+  return (
+    <div>
+      <nav className="navbar">
+        <h2>Paradise Nursery</h2>
+        <div>
+          <Link to="/">Home</Link>
+          <Link to="/plants">Continue Shopping</Link>
+        </div>
+      </nav>
+
+      <main className="page-container">
+        <h1 className="page-title">Shopping Cart</h1>
+
+        {items.length === 0 ? (
+          <div className="empty-cart">
+            <h2>Your cart is empty</h2>
+            <p>Add some beautiful plants to get started.</p>
+            <Link to="/plants" className="primary-btn">
+              Shop Plants
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="cart-list">
+              {items.map((item) => (
+                <article className="cart-item" key={item.id}>
+                  <img src={item.image} alt={item.name} />
+
+                  <div className="cart-item-info">
+                    <h3>{item.name}</h3>
+                    <p>Price: ₹{item.price}</p>
+                    <p>
+                      Subtotal: ₹{item.price * item.quantity}
+                    </p>
+                  </div>
+
+                  <div className="quantity-controls">
+                    <button
+                      onClick={() =>
+                        updateItemQuantity(item, item.quantity - 1)
+                      }
+                      disabled={item.quantity <= 1}
+                      aria-label={`Decrease ${item.name} quantity`}
+                    >
+                      -
+                    </button>
+
+                    <span>{item.quantity}</span>
+
+                    <button
+                      onClick={() =>
+                        updateItemQuantity(item, item.quantity + 1)
+                      }
+                      aria-label={`Increase ${item.name} quantity`}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    className="remove-btn"
+                    onClick={() => dispatch(removeItem(item.id))}
+                  >
+                    Remove
+                  </button>
+                </article>
+              ))}
+            </div>
+
+            <div className="cart-total">
+              <h2>Total: ₹{total}</h2>
+              <button
+                className="checkout-btn"
+                onClick={() => alert("Thank you for shopping with us!")}
+              >
+                Checkout
+              </button>
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
+
+export default CartItem;
